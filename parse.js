@@ -1,9 +1,9 @@
+// Direct HTML rendering: block structure first, inline spans after references resolve.
 const emptyRefs=Object.freeze(Object.create(null));
-// Original direct HTML renderer. No runtime dependencies.
 const punct = /[\p{P}\p{S}]/u;
 const ws = /\s/u;
 const escapable = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/;
-const tags = new Set('address article aside base basefont blockquote body caption center col colgroup dd details dialog dir div dl dt fieldset figcaption figure footer form frame frameset h1 h2 h3 h4 h5 h6 head header hr html iframe legend li link main menu menuitem meta nav noframes ol optgroup option p param search section summary table tbody td tfoot th thead title tr track ul'.split(' '));
+const tags = new Set('address article aside base basefont blockquote body caption center col colgroup dd details dialog dir div dl dt fieldset figcaption figure footer form frameset h1 h2 h3 h4 h5 h6 head header hr html iframe legend li link main menu menuitem meta nav noframes ol optgroup option p param search section summary table tbody td tfoot th thead title tr track ul frame'.split(' '));
 function escape(s, all=false) { return s.replace(all ? /[&<>"']/g : /[<>"']|&(?!(?:#\d{1,7}|#[xX][\da-fA-F]{1,6}|\w+);)/g, c=>c==='&'?'&amp;':c==='<'?'&lt;':c==='>'?'&gt;':c==='"'?'&quot;':'&#39;'); }
 function unescape(s) { return s.replace(/\\([!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~])/g,'$1'); }
 function label(s) { return s.trim().replace(/\s+/g,' ').toLowerCase().toUpperCase().toLowerCase(); }
@@ -25,7 +25,7 @@ function destination(s, at) {
 }
 let collecting = false, linkState=false, deferred=null, marker='', paragraphMark='', boundaryMark='';
 function inline(s, refs, inLink=undefined, raw=false) {
- if (collecting) return 'x';if(deferred){deferred.push(s);return marker;}let root=inLink===undefined;if(root)inLink=linkState;let memo=null;if(!s.includes('<')){memo=(s.includes('[')?referenceMemo:inlineMemo)[(linkState?2:0)+(raw?1:0)];let hit=memo.get(s);if(hit!==undefined)return hit;}if(plainInline(s,linkState)){if(memo)memo.set(s,s);return s;}let hidden; 
+ if (collecting) return 'x';if(deferred){deferred.push(s);return marker;}let root=inLink===undefined;if(root)inLink=linkState;let memo=null;if(!s.includes('<')){memo=(s.includes('[')?referenceMemo:inlineMemo)[(linkState?2:0)+(raw?1:0)];let hit=memo.get(s);if(hit!==undefined)return hit;}if(plainInline(s,linkState)){if(memo)memo.set(s,s);return s;}let hidden;
  let out='',i=0,autoAt=linkState?Infinity:nextAuto(s,0);
  while(i<s.length){if(i>autoAt)autoAt=nextAuto(s,i);let c=s.charCodeAt(i),ch=s[i];
  if(c===92&&i+1<s.length){if(s[i+1]==='\n'){out+='<br>';i+=2;while(s[i]===' '||s[i]==='\t')i++;continue;}if(escapable.test(s[i+1])){out+=escape(s[i+1],true);i+=2;continue;}}
